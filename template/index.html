@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>多图片上传</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h2 { color: #333; }
+        .upload-area { margin: 20px 0; }
+        input[type="file"] {
+            padding: 10px;
+            border: 2px dashed #aaa;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover { background: #45a049; }
+        #status {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h2>📷 上传图片</h2>
+    <p>可以选择多张图片，一起上传。</p>
+    <div class="upload-area">
+        <!-- multiple 支持多选，accept="image/*" 限制图片类型 -->
+        <input type="file" id="fileInput" multiple accept="image/*">
+    </div>
+    <button onclick="uploadFiles()">上传到服务器</button>
+    <div id="status"></div>
+
+    <script>
+        const UPLOAD_URL = '/upload';
+
+        async function uploadFiles() {
+            const input = document.getElementById('fileInput');
+            const files = input.files;
+            if (files.length === 0) {
+                alert('请先选择至少一张图片');
+                return;
+            }
+
+            const formData = new FormData();
+            // 注意：这里的 'files' 必须和你后端 File(...) 的参数名一致
+            for (let i = 0; i < files.length; i++) {
+                formData.append('files', files[i]);
+            }
+
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = '正在上传...';
+
+            try {
+                const response = await fetch(UPLOAD_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    statusDiv.textContent = '✅ 上传成功！';
+                } else {
+                    statusDiv.textContent = '❌ 上传失败：' + (result.detail || '未知错误');
+                }
+            } catch (err) {
+                statusDiv.textContent = '❌ 网络错误：' + err.message;
+                // 如果出现跨域错误，控制台会提示，此时请参考下方说明
+            }
+        }
+    </script>
+</body>
+</html>
