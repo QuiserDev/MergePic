@@ -1,3 +1,4 @@
+import mimetypes
 import time
 from typing import List
 
@@ -21,12 +22,21 @@ async def upload(files: List[UploadFile] = File(...)):
     for file in files:
         content = await file.read()
 
-        with open(str(time.time()) + "-" + str(file.filename), "wb") as f:
+        if file.filename:
+            safe_name = file.filename
+        else:
+            ext = mimetypes.guess_extension(file.content_type or "") or ""
+            safe_name = f"unnamed{ext}"
+        path = f"{time.time()}-{safe_name}"
+
+        with open(path, "wb") as f:
             f.write(content)
+
+        await file.close()
 
         resp = {
             "content_type": file.content_type,
             "size": len(content),
         }
-        saved[file.filename] = resp
+        saved[file.filename or safe_name] = resp
     return saved
