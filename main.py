@@ -1,5 +1,6 @@
 import mimetypes
-import time
+import os
+import uuid
 from typing import List
 
 from fastapi import FastAPI, File, UploadFile
@@ -23,11 +24,11 @@ async def upload(files: List[UploadFile] = File(...)):
         content = await file.read()
 
         if file.filename:
-            safe_name = file.filename
+            safe_name = os.path.basename(file.filename)
         else:
             ext = mimetypes.guess_extension(file.content_type or "") or ""
             safe_name = f"unnamed{ext}"
-        path = f"{time.time()}-{safe_name}"
+        path = f"{uuid.uuid4().hex[:12]}-{safe_name}"
 
         with open(path, "wb") as f:
             f.write(content)
